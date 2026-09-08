@@ -65,7 +65,7 @@ export default function Dashboard() {
           color: '#fff',
           marginBottom: '20px'
         }}>
-          {isDanger ? '⚠️ GAS TERDETEKSI!' : '✅ KONDISI AMAN'}
+          {isDanger ? 'Diatas Batas Aman' : 'Dibawah Batas Aman'}
         </div>
 
         <hr style={{ borderColor: '#334155', margin: '15px 0' }} />
