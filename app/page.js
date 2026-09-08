@@ -33,7 +33,7 @@ export default function Dashboard() {
       {/* Header Info */}
       <header style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h1 style={{ margin: '0 0 10px 0', fontSize: '28px', letterSpacing: '1px' }}>
-          🌐 DYNAMIC MULTI-NODE GAS MONITORING
+          GAS MONITORING
         </h1>
         <p style={{ color: '#94a3b8', margin: 0 }}>
           Active Registered Nodes: <strong style={{ color: '#38bdf8' }}>{totalNodes}</strong>
@@ -115,7 +115,7 @@ export default function Dashboard() {
                   backgroundColor: !node.is_online ? '#334155' : isDanger ? '#ef4444' : '#22c55e',
                   color: '#fff'
                 }}>
-                  {!node.is_online ? 'NO SIGNAL' : isDanger ? '⚠️ GAS TERDETEKSI' : '✅ AMAN'}
+                  {!node.is_online ? 'NO SIGNAL' : isDanger ? 'Diatas Batas Aman' : 'Dibawah Batas Aman'}
                 </span>
               </div>
 
