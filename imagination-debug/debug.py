@@ -28,7 +28,7 @@ def simulate_device(device_num):
             print(f"[{device_id}] Error: {e}")
 
         # Delay acak tiap node antara 2 - 4 detik
-        time.sleep(random.uniform(2.0, 4.0))
+        time.sleep(0)
 
 print(f"=== SIMULATING {NUM_DEVICES} DYNAMIC NODES ===")
 print(f"Target: {URL}\n")

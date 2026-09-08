@@ -43,7 +43,7 @@ export default function Dashboard() {
       {/* Empty State */}
       {nodes.length === 0 && (
         <div style={{ textAlign: 'center', color: '#64748b', marginTop: '60px' }}>
-          <p>Belum ada data masuk dari ESP32-C3...</p>
+          <p>No data...</p>
         </div>
       )}
 
