@@ -2,78 +2,139 @@
 import { useState, useEffect } from 'react';
 
 export default function Dashboard() {
-  const [data, setData] = useState({
-    device_id: 'LOADING...',
-    gas_raw: 0,
-    gas_detected: false,
-    threshold: 250,
-    updated_at: '-'
-  });
+  const [nodes, setNodes] = useState([]);
+  const [totalNodes, setTotalNodes] = useState(0);
 
-  // Fetch data dari API tiap 1 detik
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
         const res = await fetch('/api/gas-sensor');
         const json = await res.json();
-        if (json.gas_raw !== undefined) setData(json);
+        if (json.devices) {
+          setNodes(json.devices);
+          setTotalNodes(json.total_nodes);
+        }
       } catch (err) {
-        console.error("Failed to fetch:", err);
+        console.error("Fetch error:", err);
       }
     }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const isDanger = data.gas_raw > data.threshold;
-
   return (
     <main style={{
       minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px',
-      backgroundColor: isDanger ? '#7f1d1d' : '#0f172a',
-      transition: 'background-color 0.3s ease'
+      backgroundColor: '#0f172a',
+      color: '#fff',
+      padding: '40px 20px',
+      fontFamily: 'system-ui, sans-serif'
     }}>
-      <div style={{
-        backgroundColor: '#1e293b',
-        padding: '30px',
-        borderRadius: '16px',
-        border: `2px solid ${isDanger ? '#ef4444' : '#334155'}`,
-        textAlign: 'center',
-        maxWidth: '400px',
-        width: '100%',
-        boxShadow: isDanger ? '0 0 30px rgba(239, 68, 68, 0.5)' : 'none'
-      }}>
-        <h2 style={{ margin: '0 0 10px 0', color: '#94a3b8', fontSize: '14px', letterSpacing: '1px' }}>
-          NODE ID: {data.device_id}
-        </h2>
-        
-        <h1 style={{ fontSize: '72px', margin: '20px 0', color: isDanger ? '#fca5a5' : '#38bdf8' }}>
-          {data.gas_raw}
+      {/* Header Info */}
+      <header style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <h1 style={{ margin: '0 0 10px 0', fontSize: '28px', letterSpacing: '1px' }}>
+          🌐 DYNAMIC MULTI-NODE GAS MONITORING
         </h1>
+        <p style={{ color: '#94a3b8', margin: 0 }}>
+          Active Registered Nodes: <strong style={{ color: '#38bdf8' }}>{totalNodes}</strong>
+        </p>
+      </header>
 
-        <div style={{
-          display: 'inline-block',
-          padding: '8px 16px',
-          borderRadius: '20px',
-          fontWeight: 'bold',
-          backgroundColor: isDanger ? '#ef4444' : '#22c55e',
-          color: '#fff',
-          marginBottom: '20px'
-        }}>
-          {isDanger ? 'Diatas Batas Aman' : 'Dibawah Batas Aman'}
+      {/* Empty State */}
+      {nodes.length === 0 && (
+        <div style={{ textAlign: 'center', color: '#64748b', marginTop: '60px' }}>
+          <p>Belum ada data masuk dari ESP32-C3...</p>
         </div>
+      )}
 
-        <hr style={{ borderColor: '#334155', margin: '15px 0' }} />
+      {/* Dynamic Grid Layout */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '20px',
+        maxWidth: '1200px',
+        margin: '0 auto'
+      }}>
+        {nodes.map((node) => {
+          const isDanger = node.is_online && (node.gas_raw > node.threshold);
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '12px' }}>
-          <span>Threshold: {data.threshold}</span>
-          <span>Last Update: {data.updated_at}</span>
-        </div>
+          return (
+            <div key={node.device_id} style={{
+              backgroundColor: '#1e293b',
+              borderRadius: '16px',
+              padding: '24px',
+              border: `2px solid ${isDanger ? '#ef4444' : node.is_online ? '#334155' : '#1e293b'}`,
+              opacity: node.is_online ? 1 : 0.4,
+              boxShadow: isDanger ? '0 0 25px rgba(239, 68, 68, 0.4)' : 'none',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              {/* Online / Offline Status Badge */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '15px'
+              }}>
+                <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#94a3b8' }}>
+                  {node.device_id}
+                </span>
+                <span style={{
+                  fontSize: '10px',
+                  padding: '2px 8px',
+                  borderRadius: '10px',
+                  backgroundColor: node.is_online ? '#065f46' : '#334155',
+                  color: node.is_online ? '#34d399' : '#94a3b8'
+                }}>
+                  {node.is_online ? '● ONLINE' : '○ OFFLINE'}
+                </span>
+              </div>
+
+              {/* Sensor Raw Value */}
+              <div style={{ textAlign: 'center', margin: '15px 0' }}>
+                <h2 style={{
+                  fontSize: '56px',
+                  margin: 0,
+                  color: !node.is_online ? '#64748b' : isDanger ? '#fca5a5' : '#38bdf8'
+                }}>
+                  {node.gas_raw}
+                </h2>
+                <span style={{ fontSize: '11px', color: '#64748b' }}>ANALOG VALUE</span>
+              </div>
+
+              {/* Status Indicator */}
+              <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                <span style={{
+                  display: 'inline-block',
+                  width: '100%',
+                  padding: '8px 0',
+                  borderRadius: '8px',
+                  fontWeight: 'bold',
+                  fontSize: '12px',
+                  backgroundColor: !node.is_online ? '#334155' : isDanger ? '#ef4444' : '#22c55e',
+                  color: '#fff'
+                }}>
+                  {!node.is_online ? 'NO SIGNAL' : isDanger ? '⚠️ GAS TERDETEKSI' : '✅ AMAN'}
+                </span>
+              </div>
+
+              {/* Footer Metadata */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '10px',
+                color: '#64748b',
+                marginTop: '20px',
+                borderTop: '1px solid #334155',
+                paddingTop: '10px'
+              }}>
+                <span>Limit: {node.threshold}</span>
+                <span>Last Seen: {node.updated_at}</span>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </main>
   );
