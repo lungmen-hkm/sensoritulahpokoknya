@@ -11,7 +11,7 @@ const OFFLINE_TIMEOUT_MS = 10000;
 export async function POST(request) {
   try {
     const body = await request.json();
-    const deviceId = body.device_id || `ESP32C3_UNKNOWN_${Math.floor(Math.random() * 1000)}`;
+    const deviceId = body.device_id || `UNKNOWN_${Math.floor(Math.random() * 1000)}`;
 
     const now = Date.now();
     const gasRaw = Number(body.gas_raw) || 0;

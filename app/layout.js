@@ -1,6 +1,9 @@
 export const metadata = {
   title: 'Gas Monitoring System',
   description: 'ESP32-C3 Real-time Gas Sensor Dashboard',
+  icons: {
+    icon: '/assets/logo.png',
+  }
 }
 
 export default function RootLayout({ children }) {

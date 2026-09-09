@@ -5,12 +5,12 @@
 #include <ArduinoJson.h>
 
 // --- Konfigurasi Wi-Fi ---
-const char* ssid = "lnpstd";
-const char* pswd = "12345678";
+const char* ssid = "YourSSID";
+const char* pswd = "YourPSWD";
 
 // --- Endpoint Domain ---
-const char* url = "https://project.lnpstd.my.id/api/gas-sensor";
-const char* id = "ESP32C3_GAS_01";
+const char* url = "https://example.com/api/gas-sensor";
+const char* id = "DeviceID";
 
 // --- Pin Assignment ESP32-C3 ---
 const int mq2 = 0; 
