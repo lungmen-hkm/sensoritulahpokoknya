@@ -4,7 +4,7 @@ import threading
 import requests
 
 NUM_DEVICES = int(input("Masukkan Jumlah Node : "))
-URL = "https://example.com/api/gas-sensor"
+URL = "https://project.lungmenhkm.xyz/roboci/api/gas-sensor"
 
 def simulate_device(device_num):
     device_id = f"DEBUG_{device_num:02d}"
