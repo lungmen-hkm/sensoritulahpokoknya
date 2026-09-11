@@ -22,7 +22,7 @@ export default function Dashboard() {
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const res = await fetch("/api/gas-sensor");
+        const res = await fetch("https://project.lungmenhkm.xyz/roboci/api/gas-sensor");
         const json: ApiResponse = await res.json();
         if (json.devices) {
           setNodes(json.devices);
