@@ -44,7 +44,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-center sm:justify-start gap-3 mb-3">
             <span className="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-mono uppercase tracking-widest text-neutral-400">
-              ESP32-C3 Real-Time Telemetry
+              Recieving Data...
             </span>
           </div>
 
@@ -54,7 +54,7 @@ export default function Dashboard() {
                 Gas Monitoring
               </h1>
               <p className="text-neutral-400 mt-2 text-sm sm:text-base">
-                Dashboard pemantauan sensor gas terhubung secara real-time.
+                Real time gas sensor monitoring dashboard.
               </p>
             </div>
 
