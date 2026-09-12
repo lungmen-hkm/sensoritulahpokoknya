@@ -1,6 +1,6 @@
 #include <Arduino.h>
-#include <WiFi.h>
-#include <HTTPClient.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
 #include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
 #include "credential.h"
@@ -11,19 +11,23 @@ const char* pswd = MyPSWD;
 
 // --- Endpoint Domain ---
 const char* url = MyURL;
-const char* id = "ESP32-C3";
+const char* id  = "ESP8266-NodeMCU-V3";
 
-// --- Pin Assignment ESP32-C3 ---
-#define mq2 0 
-#define buzzer 3 
-#define led 4
+// --- Pin Assignment NodeMCU V3 ---
+#define mq2 A0
+#define buzzer D1
+#define led D2
 
-// --- Threshold nilai analog ---
+// --- Threshold ---
 const int batas = 250;
 
-// --- HTTP POST ---
+// --- Timers (Non-Blocking) ---
 unsigned long lastSendTime = 0;
-const unsigned long SEND_INTERVAL = 3000; 
+const unsigned long SEND_INTERVAL = 100; // Kirim HTTP tiap 3 detik
+
+unsigned long lastBlinkTime = 0;
+const unsigned long BLINK_INTERVAL = 500; // LED kedip tiap 500ms pas bahaya
+bool ledState = LOW;
 
 void kirimdata(int gas) {
   if (WiFi.status() != WL_CONNECTED) {
@@ -31,18 +35,15 @@ void kirimdata(int gas) {
   }
 
   WiFiClientSecure client;
-
-// --- Bypass SSL Cert verification ---
-//  client.setInsecure(); 
+  client.setInsecure(); // Bypass SSL Cert verification
 
   HTTPClient http;
   if (http.begin(client, url)) {
     http.addHeader("Content-Type", "application/json");
 
-    // --- JSON Payload ---
     StaticJsonDocument<200> doc;
-    doc["device_id"] = id;
-    doc["gas_raw"] = gas;
+    doc["device_id"]    = id;
+    doc["gas_raw"]      = gas;
     doc["gas_detected"] = (gas > batas);
 
     String jsonPayload;
@@ -63,52 +64,63 @@ void kirimdata(int gas) {
 }
 
 void setup() {
-  
-  // --- Serial Debug Connection ---
   Serial.begin(115200);
 
-  // --- Pin Mode ---
   pinMode(mq2, INPUT);
   pinMode(buzzer, OUTPUT);
   pinMode(led, OUTPUT);
 
-  // --- Wi-Fi ---
+  // Pastikan output mati di awal
+  digitalWrite(buzzer, LOW);
+  digitalWrite(led, LOW);
+
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, pswd);
 
+  Serial.print("Connecting to WiFi");
   int timeout = 0;
   while (WiFi.status() != WL_CONNECTED && timeout < 20) {
     delay(500);
-    Serial.print("\nConnection Timeout. Retrying...");
+    Serial.print(".");
     timeout++;
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println(WiFi.localIP());
+    Serial.println("\n[Wi-Fi] w IP: " + WiFi.localIP().toString());
   } else {
-    Serial.println("\n[Wi-Fi] Connection Timeout.");
+    Serial.println("\n[Wi-Fi] Connection Timeout. Will retry in loop.");
   }
 }
 
 void loop() {
+  unsigned long currentMillis = millis();
 
-  // --- Sensor Read ---
+  // --- 1. Baca Sensor Instan ---
   int gas = analogRead(mq2);
 
-  // --- Sensor Logic ---
+  // --- 2. Logika Alarm Non-Blocking ---
   if (gas > batas) {
     digitalWrite(buzzer, HIGH);
-    digitalWrite(led, HIGH);
-    delay(200);
-    digitalWrite(led, LOW);
-    delay(200);
+
+    // Kedipkan LED tiap 100ms tanpa delay()
+    if (currentMillis - lastBlinkTime >= BLINK_INTERVAL) {
+      lastBlinkTime = currentMillis;
+      ledState = !ledState;
+      digitalWrite(led, ledState);
+    }
+    
   } else {
     digitalWrite(buzzer, LOW);
     digitalWrite(led, LOW);
-    delay(1);
+    ledState = LOW;
   }
 
-  // --- Trigger ---
-  unsigned long currentMillis = millis();
+  // --- 3. Auto Reconnect Wi-Fi (Jika Putus) ---
+  if (WiFi.status() != WL_CONNECTED && (currentMillis % 10000 == 0)) {
+    WiFi.reconnect();
+  }
+
+  // --- 4. Trigger HTTP POST Tiap 3 Detik ---
   if (currentMillis - lastSendTime >= SEND_INTERVAL) {
     lastSendTime = currentMillis;
     kirimdata(gas);
